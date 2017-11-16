@@ -14,7 +14,8 @@ public interface MyDatabase {
      *         eventType: biz_txn_v1,
      *         retentionPeriod: 10,
      *         pickupTimestamp: 1510858845481
-     *     }
+     *     },
+     *     pickupSpeed: "WITHIN_HOUR"
      * }
      *
      * retentionPeriod is optional.

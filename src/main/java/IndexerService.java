@@ -23,6 +23,8 @@ public class IndexerService {
         this.myDatabase = myDatabase;
     }
 
+    private String pickupSpeed = null;
+
     /**
      * Input doc will have the form:
      * {
@@ -36,6 +38,8 @@ public class IndexerService {
      *         pickupTimestamp: 1510858845481
      *     }
      * }
+     *
+     * Assume this method is being called from some REST resource.
      */
     public void indexDocument(String doc) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -55,9 +59,9 @@ public class IndexerService {
         int newVersion = docAsJson.get("version").asInt() + 1;
         databaseDoc.put("version", newVersion);
 
-        List<String> iso8601Dates = new ArrayList<>();
         JsonNode listOfDates = docAsJson.get("listOfDates");
         if (listOfDates != null) {
+            List<String> iso8601Dates = new ArrayList<>();
             int dateSize = listOfDates.size();
             for (int i = 0; i < dateSize; i++) {
                 long date = listOfDates.get(i).asLong();
@@ -84,6 +88,12 @@ public class IndexerService {
         fillInRetentionPeriod(docAsJson, metadataMap);
         fillInPickupTimestamp(docAsJson, metadataMap);
 
+        if (pickupSpeed != null) {
+            databaseDoc.put("pickupSpeed", pickupSpeed);
+        } else {
+            databaseDoc.put("pickupSpeed", "TOO_LONG");
+        }
+
         myDatabase.indexDocument(databaseDoc);
     }
 
@@ -106,7 +116,18 @@ public class IndexerService {
     }
 
     private void fillInPickupTimestamp(JsonNode docAsJson, Map<Object, Object> metadataDoc) {
-        long retentionPeriod = docAsJson.get("metadata").get("pickupTimestamp").asLong();
-        metadataDoc.put("retentionPeriod", retentionPeriod);
+        int msInHour = 3_600_000;
+        int msInDay = 86_400_000;
+        int msInWeek = 604_800_000;
+
+        long pickupTimestamp = docAsJson.get("metadata").get("pickupTimestamp").asLong();
+        if ((ZonedDateTime.now(ZoneOffset.UTC).toInstant().toEpochMilli() - pickupTimestamp) < msInHour) {
+            pickupSpeed = "WITHIN_HOUR";
+        } else if ((ZonedDateTime.now(ZoneOffset.UTC).toInstant().toEpochMilli() - pickupTimestamp) < msInDay) {
+            pickupSpeed = "WITHIN_DAY";
+        } else if ((ZonedDateTime.now(ZoneOffset.UTC).toInstant().toEpochMilli() - pickupTimestamp) < msInWeek) {
+            pickupSpeed = "WITHIN_WEEK";
+        }
+        metadataDoc.put("retentionPeriod", pickupTimestamp);
     }
 }

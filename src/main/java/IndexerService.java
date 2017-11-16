@@ -12,8 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class takes some json, transforms it, and gives it to the database. This code is NOT performance intensive --
- * we want to focus on readability over micro-optimizations.
+ * This class takes some json, transforms it, and gives it to the database.
+ *
+ * Some notes:
+ * 1) we're using java 8, feel free (encouraged) to use java 8 features
+ * 2) this code is NOT performance intensive -- we want to focus on readability over any micro-optimizations
+ *
  */
 public class IndexerService {
 
@@ -24,6 +28,7 @@ public class IndexerService {
     }
 
     private String pickupSpeed = null;
+    public String TOO_LONG_CONSTANT = "TOO_LONG";
 
     /**
      * Input doc will have the form:
@@ -91,7 +96,7 @@ public class IndexerService {
         if (pickupSpeed != null) {
             databaseDoc.put("pickupSpeed", pickupSpeed);
         } else {
-            databaseDoc.put("pickupSpeed", "TOO_LONG");
+            databaseDoc.put("pickupSpeed", TOO_LONG_CONSTANT);
         }
 
         myDatabase.indexDocument(databaseDoc);

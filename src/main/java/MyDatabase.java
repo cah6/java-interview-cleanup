@@ -18,7 +18,7 @@ public interface MyDatabase {
      *     pickupSpeed: "WITHIN_HOUR"
      * }
      *
-     * retentionPeriod is optional.
+     * retentionPeriod is an optional field.
      */
     void indexDocument(Map<?, ?> doc);
 }
